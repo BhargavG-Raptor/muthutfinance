@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Email Signup</title>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0f0f0f;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 2rem;
+    }
+
+    .card {
+      background: #1a1a1a;
+      border: 1px solid #2e2e2e;
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+    }
+
+    .icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 0.5rem;
+    }
+
+    p.sub {
+      font-size: 0.875rem;
+      color: #888;
+      margin-bottom: 1.75rem;
+      line-height: 1.5;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+
+    input[type="text"],
+    input[type="email"] {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid #333;
+      background: #111;
+      color: #fff;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 1rem;
+    }
+
+    .row input[type="text"] {
+      margin-bottom: 0;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus {
+      border-color: #555;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      background: #ffffff;
+      color: #000;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    button:hover { opacity: 0.88; }
+    button:active { transform: scale(0.98); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .notice {
+      margin-top: 1rem;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      display: none;
+    }
+
+    .notice.success {
+      display: block;
+      background: #0d2e1a;
+      color: #4ade80;
+      border: 1px solid #166534;
+    }
+
+    .notice.error {
+      display: block;
+      background: #2e0d0d;
+      color: #f87171;
+      border: 1px solid #7f1d1d;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="icon">✉️</div>
+  <h1>Get in touch</h1>
+  <p class="sub">Enter your email address and we'll send you a message right away.</p>
+
+  <div class="row">
+    <input type="text" id="firstNameInput" placeholder="First name" />
+    <input type="text" id="lastNameInput" placeholder="Last name" />
+  </div>
+  <input type="email" id="emailInput" placeholder="your@email.com" />
+  <button id="sendBtn" onclick="sendEmail()">Send me the message</button>
+  <div class="notice" id="notice"></div>
+</div>
+
+<script>
+  // ─── FILL IN YOUR EMAILJS KEYS HERE ───────────────────────────
+  const EMAILJS_PUBLIC_KEY  = "lKjddBgRVtF11x-_J";
+  const EMAILJS_SERVICE_ID  = "service_1ldmhgt";
+  const EMAILJS_TEMPLATE_ID = "template_u4993vj";
+  // ──────────────────────────────────────────────────────────────
+
+  emailjs.init(EMAILJS_PUBLIC_KEY);
+
+  function sendEmail() {
+    const firstNameInput = document.getElementById("firstNameInput");
+    const lastNameInput  = document.getElementById("lastNameInput");
+    const emailInput     = document.getElementById("emailInput");
+    const btn            = document.getElementById("sendBtn");
+    const notice         = document.getElementById("notice");
+
+    const firstName = firstNameInput.value.trim();
+    const lastName  = lastNameInput.value.trim();
+    const email     = emailInput.value.trim();
+
+    notice.className = "notice";
+    notice.textContent = "";
+
+    if (!firstName) {
+      notice.className = "notice error";
+      notice.textContent = "Please enter your first name.";
+      return;
+    }
+    if (!lastName) {
+      notice.className = "notice error";
+      notice.textContent = "Please enter your last name.";
+      return;
+    }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      notice.className = "notice error";
+      notice.textContent = "Please enter a valid email address.";
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Sending…";
+
+    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+      to_email:   email,
+      first_name: firstName,
+      last_name:  lastName,
+      full_name:  firstName + " " + lastName
+    })
+    .then(() => {
+      notice.className = "notice success";
+      notice.textContent = "✓ Message sent! Check your inbox.";
+      firstNameInput.value = "";
+      lastNameInput.value  = "";
+      emailInput.value     = "";
+    })
+    .catch((err) => {
+      notice.className = "notice error";
+      notice.textContent = "Something went wrong. Please try again.";
+      console.error("EmailJS error:", err);
+    })
+    .finally(() => {
+      btn.disabled = false;
+      btn.textContent = "Send me the message";
+    });
+  }
+
+  document.getElementById("emailInput").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") sendEmail();
+  });
+</script>
+
+</body>
+</html>
